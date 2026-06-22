@@ -2,6 +2,7 @@
 ODMR 數據採集程式 — Andor iDus 401 + Siglent SSG3000X
 - 每個頻率點採集 MW_on / MW_off 各 N 幀
 - AOM 快門自動控制 (曝光 HIGH, 讀出 LOW)
+- MW 功率上限保護 (≤3 dBm)
 - 記憶體平均後存一張 TIFF
 - 自動命名存檔
 
@@ -253,6 +254,8 @@ class OdmrApp(tk.Tk):
         self.mw_power.insert(0, "0")
         self.mw_power.grid(row=1, column=1, padx=5, pady=2, sticky="w")
 
+        ttk.Label(f_sg, text="(最大 3 dBm, 保護功放)").grid(row=1, column=2, sticky="w", padx=2, pady=2)
+
         # ---- 掃頻 ----
         f_freq = ttk.LabelFrame(self, text="掃頻參數")
         f_freq.pack(pady=8, padx=10, fill="x")
@@ -356,6 +359,9 @@ class OdmrApp(tk.Tk):
         try:
             visa = self.visa_addr.get().strip()
             mw_power = float(self.mw_power.get())
+            if mw_power > 3.0:
+                messagebox.showerror("安全保護", "MW 功率不能超過 3 dBm，否則可能燒毀功放！")
+                return
             f_start = float(self.freq_start.get())
             f_stop = float(self.freq_stop.get())
             n_f = int(self.n_freq.get())
